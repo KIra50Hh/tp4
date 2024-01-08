@@ -2,12 +2,12 @@
 
 import {z} from "zod";
 import {useForm, zodResolver} from "@mantine/form";
-import {PasswordInput, TextInput} from "@mantine/core";
+import {Box, PasswordInput, TextInput} from "@mantine/core";
 import {Button, NoticeMessage, useZodI18n} from "tp-kit/components";
 import {useRouter} from "next/navigation";
-import React, {useState} from "react";
+import React, {useEffect, useState} from "react";
 import {createClientComponentClient} from "@supabase/auth-helpers-nextjs";
-import { Card } from "@mantine/core";
+import {getUser} from "../../../utils/supabase";
 
 const schema = z.object({
     name: z.string().nonempty(),
@@ -29,6 +29,14 @@ export default function Inscription(){
         validate: zodResolver(schema),
     });
 
+    useEffect(() => {
+        getUser(supabase).then((user) => {
+            if (user.session) {
+                router.push('/mon-compte')
+            }
+        });
+    }, []);
+
     const supabase = createClientComponentClient();
 
     const router = useRouter();
@@ -38,7 +46,6 @@ export default function Inscription(){
     const [message, setMessage] = useState("");
 
     const handleSubmit = async (values: FormValues) => {
-        console.log(values);
         const { error } = await supabase.auth.signUp(
             {
                 email: values.email,
@@ -59,7 +66,7 @@ export default function Inscription(){
     }
 
     return (
-      <Card maw={320} mx="auto">
+        <Box maw={340} mx="auto">
         <form
             className="flex items-center flex-col space-y-6 w-"
             onSubmit={form.onSubmit((values) => handleSubmit(values))}
@@ -110,6 +117,6 @@ export default function Inscription(){
 
             <a onClick={() => router.push('/connexion')} className="">Déjà un compte ? Se connecter</a>
         </form>
-        </Card>
+        </Box>
     );
 }
